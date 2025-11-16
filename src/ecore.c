@@ -1,6 +1,7 @@
 #include "../include/esclib.h"
 #include "PrivateErrorProtocols.h"
 
+#include <csignal>
 #include <signal.h>
 #include <string.h>
 #include <stdio.h>
@@ -27,21 +28,28 @@
 typedef struct CoreData {
 	struct {
 
-	} Backbuffor;
+	} Backbuffer;
+
 	struct {
 
 	} Tui;
+
 	struct {
+
 		#if defined(__APPLE__) || defined(__linux__)
 
 		#elif defined(_WIN32) || defined(_WIN64)
 
 		#endif
 
+		bool signalsOn;
+
 	} Terminal;
+
 	struct {
 
 	} Cursor;
+
 	struct {
 
 	} Time;
@@ -61,6 +69,12 @@ static void SignalThingies(int signal) {
 
 // TODO: Check if it works on windows
 void InitTui(int fps, bool DisableSignals) {
+	atexit(CloseTui);
+	
+	if(!DisableSignals) {
+		signal(SIGINT, SignalThingies);
+		CORE.Terminal.signalsOn = true;
+	}
 }
 
 void CloseTui(void) {
