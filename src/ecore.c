@@ -1,7 +1,6 @@
 #include "../include/esclib.h"
 #include "PrivateErrorProtocols.h"
 
-#include <csignal>
 #include <signal.h>
 #include <string.h>
 #include <stdio.h>
@@ -24,10 +23,15 @@
 
 #endif
 
+typedef struct cell {
+	char data[4];
+	u_int8_t lenght;
+} cell;
 
 typedef struct CoreData {
 	struct {
-
+		cell* backbuffer;
+		int lenght;
 	} Backbuffer;
 
 	struct {
