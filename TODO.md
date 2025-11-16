@@ -36,6 +36,7 @@ TODO:
 - Jup, rectangle broke:(
 - Ok, chainge the logic so backbuffor is array at dimmentions of the terminal. And every frame it just clear's WHOLE terminal and writes backbuffor. Becouse as I thouth the terminal is just retarted and you chan't thrust it with esqseq
 - Jup, FOR SURE it's terminal's foult with thoes bug's that make's f.e. DRAWRECTANGLE not drawing full rectangle. In summ just do the thing up
+- And backbuff is per cell. btw. esqseq like chainge color should still work. btw. delete styles(becouse utf-8)
 
 
 TOUGHTS SAVE(In case cursor starts to flicker again(YES I FUCKING FIXED IT!!!!)):
