@@ -69,8 +69,6 @@ void DrawTextGradientRaw(const char* text, int posX, int posY, fontStyle Style, 
         Color.green = Left.green + (int)((Right.green - Left.green) * state_of_journey);
         Color.blue = Left.blue + (int)((Right.blue - Left.blue) * state_of_journey);
 
-		SetCursorPosition(posX + i, posY);
-
 		SetForegroundColor(Color);
 
 		WriteToBackBuffor(&text[i], 1);
@@ -117,12 +115,17 @@ void DrawRectangleV(vector2 position, int width, int height, color Color) {
 
 //}
 
-//void DrawRectangleGradientHorizontalRaw(const char character, int posX, int posY, int width, int height, fontStyle Style, color Left, color Right) {
+void DrawRectangleGradientHorizontalRaw(const char character, int posX, int posY, int width, int height, fontStyle Style, color Left, color Right) {
+	char filler[width];
+	memset(filler, character, sizeof(char) * width);
 
-//}
-//void DrawRectangleGradientHorizontal(int posX, int posY, int width, int height, color Left, color Right) {
-
-//}
-//void DrawRectangleGradientHorizontalV(vector2 position, int width, int height, color Left, color Right) {
-
-//}
+	for(int i = 0; i < height; i++) {
+		DrawTextGradientRaw(filler, posX, posY + i, Style, Left, Right, width);
+	}
+}
+void DrawRectangleGradientHorizontal(int posX, int posY, int width, int height, color Left, color Right) {
+	DrawRectangleGradientHorizontalRaw(' ', posX, posY, width, height, STYLE_BACKGROUND, Left, Right);
+}
+void DrawRectangleGradientHorizontalV(vector2 position, int width, int height, color Left, color Right) {
+	DrawRectangleGradientHorizontal(position.x, position.y, width, height, Left, Right);
+}
