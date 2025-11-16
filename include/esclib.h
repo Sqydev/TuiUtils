@@ -48,8 +48,8 @@ typedef struct intvector4 {
 	int w;
 } intvector4;
 
-typedef enum {
-} keyid;
+//typedef enum {
+//} keyid;
 
 
 

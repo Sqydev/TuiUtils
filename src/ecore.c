@@ -61,7 +61,6 @@ static void SignalThingies(int signal) {
 
 // TODO: Check if it works on windows
 void InitTui(int fps, bool DisableSignals) {
-
 }
 
 void CloseTui(void) {
