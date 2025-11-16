@@ -79,6 +79,9 @@ void InitTui(int fps, bool DisableSignals) {
 		signal(SIGINT, SignalThingies);
 		CORE.Terminal.signalsOn = true;
 	}
+	else {
+		// Here disableing signals at doing raw mode
+	}
 }
 
 void CloseTui(void) {
