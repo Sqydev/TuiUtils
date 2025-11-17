@@ -24,9 +24,14 @@
 #endif
 
 typedef struct cell {
-	char* colorSeq;
-	char data[4];
-	u_int8_t lenght;
+	char utf8char[4];
+	u_int8_t charlenght;
+
+	char fgSeq[20];
+	u_int8_t fgSeqLenght;
+
+	char bgSeq[20];
+	u_int8_t bgSeqLenght;
 } cell;
 
 typedef struct CoreData {
@@ -64,6 +69,18 @@ CoreData CORE = { 0 };
 
 
 
+
+static void WriteSysCall(int where, const void* what, size_t len) {
+	#if defined(__APPLE__) || defined(__linux__)
+
+		write(where, what, len);
+
+	#elif defined(_WIN32) || defined(_WIN64)
+
+		_write(where, what, (unsigned int)len);
+
+	#endif
+}
 
 static void SignalThingies(int signal) {
 	if(signal == SIGINT) {
