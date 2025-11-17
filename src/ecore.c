@@ -24,9 +24,7 @@
 #endif
 
 typedef struct cell {
-	// Here things like color escseq
-	char* aditionals;
-
+	char* colorSeq;
 	char data[4];
 	u_int8_t lenght;
 } cell;

@@ -1,4 +1,6 @@
 TODO:
+- Do backbuff like in 2 in Notes
+- Do universal write fn(for lazyness)
 
 
 TOUGHTS SAVE(In case cursor starts to flicker again(YES I FUCKING FIXED IT!!!!)):
