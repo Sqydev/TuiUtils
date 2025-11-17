@@ -2,7 +2,7 @@
 
 This project is in hard development and is NOT usable.  
 
-And This readme is ONLY a tample
+And This readme is just a copy paste from other project for now
 
 
 

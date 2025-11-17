@@ -8,6 +8,7 @@
 #include <stdlib.h>
 
 
+
 // Setup
 #if defined(__APPLE__) || defined(__linux__)
 
@@ -20,6 +21,11 @@
 #elif defined(_WIN32) || defined(_WIN64)
 
 	#include <windows.h>
+	#include <io.h>
+
+	#define STDOUT_FILENO _fileno(stdout)
+	#define STDIN_FILENO _fileno(stdin)
+	#define STDERR_FILENO _fileno(stderr)
 
 #endif
 
@@ -35,33 +41,45 @@ typedef struct cell {
 } cell;
 
 typedef struct CoreData {
-	struct {
-		cell* backbuffer;
-		int lenght;
-	} Backbuffer;
+	cell* backbuffer;
 
 	struct {
-
+		bool shouldClose;
 	} Tui;
 
 	struct {
 
 		#if defined(__APPLE__) || defined(__linux__)
 
+			struct termios defaultSettings;
+			struct termios esclibSettings;
+
 		#elif defined(_WIN32) || defined(_WIN64)
+
+			DWORD defaultSettings;
+			DWORD esclibSettings;
 
 		#endif
 
 		bool signalsOn;
+		bool altbuffOn;
 
 	} Terminal;
 
 	struct {
-
+		vector2 currentPosition;
+		intvector2 currentTerminalPosition;
+		vector2 lockedPosition;
+		bool hidden;
+		bool locked;
 	} Cursor;
 
 	struct {
-
+		double current;
+		double previous;
+		double delta;
+		double target;
+		unsigned int frameCounter;
 	} Time;
 } CoreData;
 
@@ -69,7 +87,7 @@ CoreData CORE = { 0 };
 
 
 
-
+// TODO: DO ERROR HANDLEING
 static void WriteSysCall(int where, const void* what, size_t len) {
 	#if defined(__APPLE__) || defined(__linux__)
 
@@ -82,12 +100,23 @@ static void WriteSysCall(int where, const void* what, size_t len) {
 	#endif
 }
 
+static void EnableRawMode() {
+	
+}
+
+static void DisableRawMode() {
+
+}
+
 static void SignalThingies(int signal) {
 	if(signal == SIGINT) {
 		CloseTui();
 		exit(0);
 	}
 }
+
+
+
 
 // TODO: Check if it works on windows
 void InitTui(int fps, bool DisableSignals) {
@@ -98,16 +127,27 @@ void InitTui(int fps, bool DisableSignals) {
 		CORE.Terminal.signalsOn = true;
 	}
 	else {
-		// Here disableing signals at doing raw mode
+		CORE.Terminal.signalsOn = false;
 	}
+
+	EnableRawMode();
+
+	// Time
+	CORE.Time.current = GetTime();
+	CORE.Time.previous = CORE.Time.current;
+	CORE.Time.delta = 0;
+	CORE.Time.frameCounter = 0;
+	SetTargetFps(fps);
 }
 
 void CloseTui(void) {
-
+	DisableRawMode();
+	DisableBufferMode();
 }
 
 void SetTargetFps(int fps) {
-
+	if(fps < 1) CORE.Time.target = 0.0;
+	else CORE.Time.target = 1.0 / (double)fps;
 }
 
 
@@ -237,6 +277,8 @@ double GetTime(void) {
 	
 		struct timespec ts;
     	clock_gettime(CLOCK_MONOTONIC, &ts);
+
+		// Sum 1e9 that I don't know what it does but it's needed(Thanks internet <3)
     	return ts.tv_sec + ts.tv_nsec / 1e9;
 
 	#elif defined(_WIN32) || defined(_WIN64)
@@ -262,14 +304,12 @@ void WriteToBackBuffor(const char* to_add, size_t lenght) {
 
 
 
-void ToggleBufferMode(void) {
-
-}
-
 void EnableBufferMode(void) {
-
+	WriteSysCall(STDOUT_FILENO, "\033[?1049h", 8);
+	CORE.Terminal.altbuffOn = true;
 }
 
 void DisableBufferMode(void) {
-
+	WriteSysCall(STDOUT_FILENO, "\033[?1049l", 8);
+	CORE.Terminal.altbuffOn = false;
 }

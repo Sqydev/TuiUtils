@@ -96,7 +96,6 @@ void ClearChar(void);
 void WriteToBackBuffor(const char* to_add, size_t lenght);
 
 // Pretty useless fns for normal use
-void ToggleBufferMode(void);
 void EnableBufferMode(void);
 void DisableBufferMode(void);
 
