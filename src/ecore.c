@@ -205,6 +205,11 @@ void InitTui(int fps, bool ShouldHideCursor, bool DisableSignals) {
 	SetTargetFps(fps);
 }
 
+void SetTargetFps(int fps) {
+	if(fps < 1) CORE.Time.target = 0.0;
+	else CORE.Time.target = 1.0 / (double)fps;
+}
+
 void CloseTui(void) {
 	DisableRawMode();
 	DisableBufferMode();
@@ -212,11 +217,6 @@ void CloseTui(void) {
 	CORE.Tui.shouldClose = true;
 
 	// TODO: HERE ADD RECOVERING SIGNAL HANDLER THAT WAS BEFORE INITTUI
-}
-
-void SetTargetFps(int fps) {
-	if(fps < 1) CORE.Time.target = 0.0;
-	else CORE.Time.target = 1.0 / (double)fps;
 }
 
 
@@ -252,40 +252,6 @@ vector2 GetCursorPosition(void);
 
 vector2 GetLockedCursorPosition(void);
 
-
-
-
-void ShowCursor(void);
-
-void HideCursor(void);
-
-void LockCursor(void);
-
-void UnlockCursor(void);
-
-
-
-
-void ClearBackground(color Color);
-
-void ClearScreen(void);
-
-void ClearLine(void);
-
-void ClearChar(void);
-
-
-void SetCursorPosition(float x, float y);
-
-void SetLockedCursorPosition(float x, float y);
-
-void MoveCursorDirectional(float up, float down, float left, float right);
-
-void MoveCursor(float x, float y);
-
-
-
-
 int GetKey(void);
 
 double GetTime(void) {
@@ -312,6 +278,57 @@ double GetTime(void) {
 
 	#endif
 }
+
+
+
+
+void SetCursorPosition(float x, float y) {
+}
+
+void SetLockedCursorPosition(float x, float y) {
+	CORE.Cursor.lockedPosition = (vector2){x, y};
+}
+
+void MoveCursorDirectional(float up, float down, float left, float right);
+
+void MoveCursor(float x, float y);
+
+
+
+
+void HideCursor(void) {
+	WriteSysCall(STDOUT_FILENO, "\033[?25l", 6);
+
+	CORE.Cursor.hidden = true;
+}
+
+void ShowCursor(void) {
+	WriteSysCall(STDOUT_FILENO, "\033[?25h", 6);
+
+	CORE.Cursor.hidden = false;
+}
+
+void LockCursor(void) {
+	CORE.Cursor.locked = true;
+}
+
+void UnlockCursor(void) {
+	CORE.Cursor.locked = false;
+}
+
+
+
+
+void ClearBackground(color Color);
+
+void ClearScreen(void);
+
+void ClearLine(void);
+
+void ClearChar(void);
+
+
+
 
 void WriteToBackBuffor(const char* to_add, size_t lenght);
 

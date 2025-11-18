@@ -55,8 +55,8 @@ typedef struct intvector4 {
 
 // eCore
 void InitTui(int fps, bool HideCursor, bool DisableSignals);
-void CloseTui(void);
 void SetTargetFps(int fps);
+void CloseTui(void);
 
 void BeginDrawing(void);
 void EndDrawing(void);
@@ -77,15 +77,12 @@ void SetLockedCursorPosition(float x, float y);
 void MoveCursorDirectional(float up, float down, float left, float right);
 void MoveCursor(float x, float y);
 
-void ShowCursor(void);
 void HideCursor(void);
+void ShowCursor(void);
 void LockCursor(void);
 void UnlockCursor(void);
 
-void SetBackgroundColor(color Color);
-void SetForegroundColor(color Color);
 void ClearBackground(color Color);
-
 void ClearScreen(void);
 void ClearLine(void);
 void ClearChar(void);
