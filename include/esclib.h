@@ -54,7 +54,7 @@ typedef struct intvector4 {
 
 
 // eCore
-void InitTui(int fps, bool DisableSignals);
+void InitTui(int fps, bool HideCursor, bool DisableSignals);
 void CloseTui(void);
 void SetTargetFps(int fps);
 
@@ -62,15 +62,13 @@ void BeginDrawing(void);
 void EndDrawing(void);
 
 bool TuiShouldClose(void);
-bool IsAlternativeBufferOn(void);
+bool IsAltBuffOn(void);
 bool IsRawModeOn(void);
 
 int GetTuiWidth(void);
 int GetTuiHeight(void);
 vector2 GetCursorPosition(void);
 vector2 GetLockedCursorPosition(void);
-color GetBackgroundColor(void);
-color GetForegroundColor(void);
 int GetKey(void);
 double GetTime(void);
 

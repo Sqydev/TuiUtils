@@ -62,7 +62,8 @@ typedef struct CoreData {
 		#endif
 
 		bool signalsOn;
-		bool altbuffOn;
+		bool rawModeOn;
+		bool altBuffOn;
 
 	} Terminal;
 
@@ -118,8 +119,7 @@ static void SignalThingies(int signal) {
 
 
 
-// TODO: Check if it works on windows
-void InitTui(int fps, bool DisableSignals) {
+void InitTui(int fps, bool ShouldHideCursor, bool DisableSignals) {
 	atexit(CloseTui);
 	
 	if(!DisableSignals) {
@@ -130,7 +130,17 @@ void InitTui(int fps, bool DisableSignals) {
 		CORE.Terminal.signalsOn = false;
 	}
 
+	// Tui
+	CORE.Tui.shouldClose = false;
+
+	// Terminal
+	EnableBufferMode();
 	EnableRawMode();
+
+	// Cursor
+	SetCursorPosition(0.0f, 0.0f);
+	SetLockedCursorPosition(0.0f, 0.0f);
+	(ShouldHideCursor) ? HideCursor() : ShowCursor();
 
 	// Time
 	CORE.Time.current = GetTime();
@@ -143,6 +153,10 @@ void InitTui(int fps, bool DisableSignals) {
 void CloseTui(void) {
 	DisableRawMode();
 	DisableBufferMode();
+
+	CORE.Tui.shouldClose = true;
+
+	// TODO: HERE ADD RECOVERING SIGNAL HANDLER THAT WAS BEFORE INITTUI
 }
 
 void SetTargetFps(int fps) {
@@ -153,124 +167,71 @@ void SetTargetFps(int fps) {
 
 
 
-void BeginDrawing(void) {
+void BeginDrawing(void);
 
-}
-
-void EndDrawing(void) {
-}
+void EndDrawing(void);
 
 
 
 
 bool TuiShouldClose(void) {
-
+	return CORE.Tui.shouldClose;
 }
 
-bool IsAlternativeBufferOn(void) {
-
+bool IsAltBuffOn(void) {
+	return CORE.Terminal.altBuffOn;
 }
 
 bool IsRawModeOn(void) {
-
+	return CORE.Terminal.rawModeOn;
 }
 
 
 
 
-int GetTuiWidth(void) {
+int GetTuiWidth(void);
 
-}
+int GetTuiHeight(void);
 
-int GetTuiHeight(void) {
+vector2 GetCursorPosition(void);
 
-}
-
-vector2 GetCursorPosition(void) {
-
-}
-
-vector2 GetLockedCursorPosition(void) {
-
-}
-
-color GetBackgroundColor(void) {
-
-}
-
-color GetForegroundColor(void) {
-
-}
+vector2 GetLockedCursorPosition(void);
 
 
 
 
-void ShowCursor(void) {
+void ShowCursor(void);
 
-}
+void HideCursor(void);
 
-void HideCursor(void) {
+void LockCursor(void);
 
-}
-
-void LockCursor(void) {
-
-}
-
-void UnlockCursor(void) {
-
-}
+void UnlockCursor(void);
 
 
 
 
-void SetBackgroundColor(color Color) {
+void ClearBackground(color Color);
 
-}
+void ClearScreen(void);
 
-void SetForegroundColor(color Color) {
+void ClearLine(void);
 
-}
-
-
-void ClearBackground(color Color) {
-
-}
-
-void ClearScreen(void) {
-
-}
-
-void ClearLine(void) {
-
-}
-
-void ClearChar(void) {
-
-}
+void ClearChar(void);
 
 
-void SetCursorPosition(float x, float y) {
+void SetCursorPosition(float x, float y);
 
-}
+void SetLockedCursorPosition(float x, float y);
 
-void SetLockedCursorPosition(float x, float y) {
+void MoveCursorDirectional(float up, float down, float left, float right);
 
-}
-
-void MoveCursorDirectional(float up, float down, float left, float right) {
-
-}
-
-void MoveCursor(float x, float y) {
-
-}
+void MoveCursor(float x, float y);
 
 
 
 
-int GetKey(void) {
-}
+int GetKey(void);
 
 double GetTime(void) {
 	#if defined(__APPLE__) || defined(__linux__)
@@ -297,19 +258,17 @@ double GetTime(void) {
 	#endif
 }
 
-void WriteToBackBuffor(const char* to_add, size_t lenght) {
-
-}
+void WriteToBackBuffor(const char* to_add, size_t lenght);
 
 
 
 
 void EnableBufferMode(void) {
 	WriteSysCall(STDOUT_FILENO, "\033[?1049h", 8);
-	CORE.Terminal.altbuffOn = true;
+	CORE.Terminal.altBuffOn = true;
 }
 
 void DisableBufferMode(void) {
 	WriteSysCall(STDOUT_FILENO, "\033[?1049l", 8);
-	CORE.Terminal.altbuffOn = false;
+	CORE.Terminal.altBuffOn = false;
 }

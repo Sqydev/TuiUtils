@@ -1,6 +1,7 @@
 TODO:
 - Do backbuff like in 2 in Notes
 - Do universal write fn(for lazyness)
+- Segregate thoes fns(in .c and .h)
 
 
 TOUGHTS SAVE(In case cursor starts to flicker again(YES I FUCKING FIXED IT!!!!)):

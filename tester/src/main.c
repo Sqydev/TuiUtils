@@ -7,7 +7,7 @@ void InitTest() {
 	InitTui(60, false);
 
 	while(1) {
-		
+
 	}
 
 	CloseTui();
@@ -16,7 +16,7 @@ void InitTest() {
 int main(void) {
 	int Input = 0;
 
-	printf("1. Backbuffor WriteTo test\n");
+	printf("1. InitTui test\n");
 
 	printf("Input: ");
 	scanf("%d", &Input);
