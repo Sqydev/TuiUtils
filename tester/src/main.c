@@ -4,7 +4,7 @@
 
 
 void InitTest() {
-	InitTui(60, false);
+	InitTui(60, false, false);
 
 	while(1) {
 

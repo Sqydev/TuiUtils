@@ -102,7 +102,62 @@ static void WriteSysCall(int where, const void* what, size_t len) {
 }
 
 static void EnableRawMode() {
+	#if defined(__APPLE__) || defined(__linux__)
 	
+		struct termios raw;
+
+		tcgetattr(STDIN_FILENO, &CORE.Terminal.defaultSettings);
+		raw = CORE.Terminal.defaultSettings;
+
+		if(CORE.Terminal.signalsOn) {
+			raw.c_lflag &= ~(ICANON | ECHO);
+		}
+		else {
+			raw.c_lflag &= ~(ICANON | ECHO | ISIG);
+		}
+
+		raw.c_iflag &= ~(ICRNL | INLCR);
+
+		raw.c_cc[VMIN] = 0;
+		raw.c_cc[VTIME] = 0;
+
+		tcsetattr(STDIN_FILENO, TCSANOW, &raw);
+
+		int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+	
+		fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+
+		CORE.Terminal.esclibSettings = raw;
+	
+	#elif defined(_WIN32) || defined(_WIN64)
+	
+		DWORD dwMode = 0;
+
+    	HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+    	GetConsoleMode(hIn, &CORE.Terminal.defaultSettings);
+
+		HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    	GetConsoleMode(hOut, &dwMode);
+
+    	SetConsoleMode(hOut, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+
+    	DWORD raw = CORE.Terminal.defaultSettings;
+		
+
+		if(CORE.Terminal.signalsOn) {
+			raw &= ~(ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT);
+		}
+		else {
+			raw &= ~(ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT | ENABLE_PROCESSED_INPUT);
+		}
+
+		raw |= ENABLE_PROCESSED_INPUT;
+
+    	SetConsoleMode(hIn, raw);
+
+		CORE.Terminal.esclibSettings = raw;
+	
+	#endif
 }
 
 static void DisableRawMode() {
