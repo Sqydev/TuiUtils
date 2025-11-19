@@ -407,11 +407,15 @@ void UnlockCursor(void) {
 
 
 
-void ClearBackground(color Color) {
+void ClearBackgroundChar(color Color, int character) {
 	CORE.Tui.previousBgColor = CORE.Tui.bgColor;
 	CORE.Tui.bgColor = Color;
 
 	// TODO: Here memset
+}
+
+void ClearBackground(color Color) {
+	ClearBackgroundChar(Color, ' ');
 }
 
 

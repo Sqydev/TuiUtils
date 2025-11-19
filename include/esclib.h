@@ -82,6 +82,7 @@ void ShowCursor(void);
 void LockCursor(void);
 void UnlockCursor(void);
 
+void ClearBackgroundChar(color Color, int character);
 void ClearBackground(color Color);
 
 // Super extra fns
