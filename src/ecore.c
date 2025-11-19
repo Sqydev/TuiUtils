@@ -45,6 +45,9 @@ typedef struct CoreData {
 
 	struct {
 		bool shouldClose;
+
+		color bgColor;
+		color previousBgColor;
 	} Tui;
 
 	struct {
@@ -283,6 +286,13 @@ double GetTime(void) {
 
 
 void SetCursorPosition(float x, float y) {
+	if(!CORE.Cursor.locked) {
+		CORE.Cursor.currentPosition = (vector2){x, y};
+		CORE.Cursor.currentTerminalPosition = (intvector2){x + 1, y + 1};
+	}
+	else {
+		CORE.Cursor.lockedPosition = (vector2){x, y};
+	}
 }
 
 void SetLockedCursorPosition(float x, float y) {
@@ -320,12 +330,6 @@ void UnlockCursor(void) {
 
 
 void ClearBackground(color Color);
-
-void ClearScreen(void);
-
-void ClearLine(void);
-
-void ClearChar(void);
 
 
 

@@ -83,9 +83,6 @@ void LockCursor(void);
 void UnlockCursor(void);
 
 void ClearBackground(color Color);
-void ClearScreen(void);
-void ClearLine(void);
-void ClearChar(void);
 
 // Super extra fns
 void WriteToBackBuffor(const char* to_add, size_t lenght);
