@@ -54,7 +54,7 @@ typedef struct intvector4 {
 
 
 // eCore
-void InitTui(int fps, bool HideCursor, bool DisableSignals);
+void InitTui(int fps, bool ShouldHideCursor, bool DisableStandardSignals);
 void SetTargetFps(int fps);
 void CloseTui(void);
 

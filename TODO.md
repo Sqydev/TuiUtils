@@ -4,6 +4,8 @@ TODO:
 - Segregate thoes fns(in .c and .h)
 - Find better name for ShouldHideCursor in InitTui
 - Think about: Should There be different SetCursorPos && SetLockedCursorPos, cuz if cursor is locked than SetCursorPos just chainges lockedcursorpos. And that is how other's work
+- Check if resize recognition works in DisableStandardSIgs == true
+- Consider doing utils.c for things with static prefix
 
 
 TOUGHTS SAVE(In case cursor starts to flicker again(YES I FUCKING FIXED IT!!!!)):

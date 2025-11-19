@@ -51,6 +51,9 @@ typedef struct CoreData {
 	} Tui;
 
 	struct {
+		// Magical internet var
+		volatile sig_atomic_t resized;
+		volatile sig_atomic_t exiting;
 
 		#if defined(__APPLE__) || defined(__linux__)
 
@@ -67,6 +70,9 @@ typedef struct CoreData {
 		bool signalsOn;
 		bool rawModeOn;
 		bool altBuffOn;
+
+		int width;
+		int height;
 
 	} Terminal;
 
@@ -112,12 +118,7 @@ static void EnableRawMode() {
 		tcgetattr(STDIN_FILENO, &CORE.Terminal.defaultSettings);
 		raw = CORE.Terminal.defaultSettings;
 
-		if(CORE.Terminal.signalsOn) {
-			raw.c_lflag &= ~(ICANON | ECHO);
-		}
-		else {
-			raw.c_lflag &= ~(ICANON | ECHO | ISIG);
-		}
+		raw.c_lflag &= ~(ICANON | ECHO);
 
 		raw.c_iflag &= ~(ICRNL | INLCR);
 
@@ -147,12 +148,7 @@ static void EnableRawMode() {
     	DWORD raw = CORE.Terminal.defaultSettings;
 		
 
-		if(CORE.Terminal.signalsOn) {
-			raw &= ~(ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT);
-		}
-		else {
-			raw &= ~(ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT | ENABLE_PROCESSED_INPUT);
-		}
+		raw &= ~(ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT);
 
 		raw |= ENABLE_PROCESSED_INPUT;
 
@@ -164,27 +160,89 @@ static void EnableRawMode() {
 }
 
 static void DisableRawMode() {
+	#if defined(__APPLE__) || defined(__linux__)
 
+		tcsetattr(STDIN_FILENO, TCSANOW, &CORE.Terminal.esclibSettings);
+
+		int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+		fcntl(STDIN_FILENO, F_SETFL, flags & ~O_NONBLOCK);
+
+	#elif defined(_WIN32) || defined(_WIN64)
+
+    	HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+		HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    	DWORD dwMode = 0;
+    	GetConsoleMode(hOut, &dwMode);
+
+    	SetConsoleMode(hIn, CORE.Terminal.settings);
+    	SetConsoleMode(hOut, dwMode & ~ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+
+	#endif
+}
+// TODO: Here also errorhandling(and in height too)
+static int GetWidthFr() {
+	#if defined(__APPLE__) || defined(__linux__)
+
+		struct winsize sizers;
+		ioctl(STDOUT_FILENO, TIOCGWINSZ, &sizers);
+
+		return sizers.ws_col;
+
+	#elif defined(_WIN32) || defined(_WIN64)
+
+		CONSOLE_SCREEN_BUFFER_INFO csbi;
+		if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)) {
+			return csbi.srWindow.Right - csbi.srWindow.Left + 1;
+		}
+
+	#endif
+}
+static int GetHeightFr() {
+	#if defined(__APPLE__) || defined(__linux__)
+
+		struct winsize sizers;
+		ioctl(STDOUT_FILENO, TIOCGWINSZ, &sizers);
+
+		return sizers.ws_row;
+
+	#elif defined(_WIN32) || defined(_WIN64)
+
+		CONSOLE_SCREEN_BUFFER_INFO csbi;
+		GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+		
+		return csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+
+	#endif
 }
 
-static void SignalThingies(int signal) {
-	if(signal == SIGINT) {
-		CloseTui();
-		exit(0);
-	}
+static void SIGINTHandler(int signal) {
+	// Warning prev
+	(void)signal;
+	CORE.Terminal.exiting = 1;
+}
+
+static void SIGWINCHHandler(int signal) {
+	// Warning prev
+	(void)signal;
+	CORE.Terminal.resized = 1;
 }
 
 
 
-
-void InitTui(int fps, bool ShouldHideCursor, bool DisableSignals) {
+// TODO: Make signal things for windows and make logic for disableing all sigs besides that one for resizeing by 
+void InitTui(int fps, bool ShouldHideCursor, bool DisableStandardSignals) {
 	atexit(CloseTui);
 	
-	if(!DisableSignals) {
-		signal(SIGINT, SignalThingies);
+	// Handlers
+	signal(SIGWINCH, SIGWINCHHandler);
+	if(!DisableStandardSignals) {
+		signal(SIGINT, SIGINTHandler);
+		signal(SIGKILL, SIGINTHandler);
 		CORE.Terminal.signalsOn = true;
 	}
 	else {
+		// TODO: HERE THAT DISABLEING ALL SIGNALS
 		CORE.Terminal.signalsOn = false;
 	}
 
@@ -192,6 +250,11 @@ void InitTui(int fps, bool ShouldHideCursor, bool DisableSignals) {
 	CORE.Tui.shouldClose = false;
 
 	// Terminal
+	CORE.Terminal.exiting = 0;
+	CORE.Terminal.resized = 0;
+	CORE.Terminal.width = GetWidthFr();
+	CORE.Terminal.height = GetHeightFr();
+
 	EnableBufferMode();
 	EnableRawMode();
 
@@ -225,7 +288,18 @@ void CloseTui(void) {
 
 
 
-void BeginDrawing(void);
+void BeginDrawing(void) {
+	if(CORE.Terminal.exiting == 1) {
+		CloseTui();
+		exit(0);
+	}
+	if(CORE.Terminal.resized == 1) {
+		CORE.Terminal.width = GetWidthFr();
+		CORE.Terminal.height = GetHeightFr();
+
+		CORE.Terminal.resized = false;
+	}
+}
 
 void EndDrawing(void);
 
@@ -247,9 +321,13 @@ bool IsRawModeOn(void) {
 
 
 
-int GetTuiWidth(void);
+int GetTuiWidth(void) {
+	return CORE.Terminal.width;
+}
 
-int GetTuiHeight(void);
+int GetTuiHeight(void) {
+	return CORE.Terminal.height;
+}
 
 vector2 GetCursorPosition(void);
 
@@ -329,7 +407,12 @@ void UnlockCursor(void) {
 
 
 
-void ClearBackground(color Color);
+void ClearBackground(color Color) {
+	CORE.Tui.previousBgColor = CORE.Tui.bgColor;
+	CORE.Tui.bgColor = Color;
+
+	// TODO: Here memset
+}
 
 
 
