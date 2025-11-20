@@ -82,8 +82,9 @@ void ShowCursor(void);
 void LockCursor(void);
 void UnlockCursor(void);
 
-void ClearBackgroundChar(color Color, int character);
-void ClearBackground(color Color);
+void ClearTuiCharRaw(char character[4], color Color, size_t lenght);
+void ClearTuiChar(char character[4], color Color);
+void ClearTui(color Color);
 
 // Super extra fns
 void WriteToBackBuffor(const char* to_add, size_t lenght);

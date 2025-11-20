@@ -6,6 +6,7 @@ TODO:
 - Think about: Should There be different SetCursorPos && SetLockedCursorPos, cuz if cursor is locked than SetCursorPos just chainges lockedcursorpos. And that is how other's work
 - Check if resize recognition works in DisableStandardSIgs == true
 - Consider doing utils.c for things with static prefix
+- Make another delta time that measures drawing delta time. starts at the end of begin drawing
 
 
 TOUGHTS SAVE(In case cursor starts to flicker again(YES I FUCKING FIXED IT!!!!)):

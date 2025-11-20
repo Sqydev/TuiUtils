@@ -1,7 +1,7 @@
 #include "../include/esclib.h"
-#include "PrivateErrorProtocols.h"
 
 #include <signal.h>
+#include <stddef.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -31,7 +31,7 @@
 
 typedef struct cell {
 	char utf8char[4];
-	u_int8_t charlenght;
+	u_int8_t utfcharlenght;
 
 	char fgSeq[20];
 	u_int8_t fgSeqLenght;
@@ -48,6 +48,7 @@ typedef struct CoreData {
 
 		color bgColor;
 		color previousBgColor;
+		char bgChar[4];
 	} Tui;
 
 	struct {
@@ -269,6 +270,10 @@ void InitTui(int fps, bool ShouldHideCursor, bool DisableStandardSignals) {
 	CORE.Time.delta = 0;
 	CORE.Time.frameCounter = 0;
 	SetTargetFps(fps);
+
+	// INIT BACKBUFFOR
+	CORE.backbuffer = calloc(CORE.Terminal.width * CORE.Terminal.height, sizeof(cell));
+	// TODO: Make alloc error handling here!!!
 }
 
 void SetTargetFps(int fps) {
@@ -296,6 +301,9 @@ void BeginDrawing(void) {
 	if(CORE.Terminal.resized == 1) {
 		CORE.Terminal.width = GetWidthFr();
 		CORE.Terminal.height = GetHeightFr();
+
+		// TODO: Do alloc error handling here too(and make it create new one and then make =(to don't lose data when smf is wrg)):
+		CORE.backbuffer = realloc(CORE.backbuffer, CORE.Terminal.width * CORE.Terminal.height * sizeof(cell));
 
 		CORE.Terminal.resized = false;
 	}
@@ -407,15 +415,27 @@ void UnlockCursor(void) {
 
 
 
-void ClearBackgroundChar(color Color, int character) {
+void ClearTuiCharRaw(char character[4], color Color, size_t lenght) {
 	CORE.Tui.previousBgColor = CORE.Tui.bgColor;
 	CORE.Tui.bgColor = Color;
 
-	// TODO: Here memset
-}
+	for(size_t i = 0; i < CORE.Terminal.width * CORE.Terminal.height; i++) {
+		cell* ptrrer = &CORE.backbuffer[i];
 
-void ClearBackground(color Color) {
-	ClearBackgroundChar(Color, ' ');
+		memcpy(ptrrer->utf8char, character, sizeof(char) * 4);
+		ptrrer->utfcharlenght = (u_int8_t)lenght;
+
+		ptrrer->fgSeqLenght = 0;
+		ptrrer->bgSeqLenght = 0;
+	}
+}
+void ClearTuiChar(char character[4], color Color) {
+	size_t len = strnlen(character, 4);
+	ClearTuiCharRaw(character, Color, len);
+}
+void ClearTui(color Color) {
+	char character[4] = {' ', '\0', '\0', '\0'};
+	ClearTuiCharRaw(character, Color, 1);
 }
 
 
