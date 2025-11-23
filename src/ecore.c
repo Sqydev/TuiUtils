@@ -309,8 +309,111 @@ void BeginDrawing(void) {
 	}
 }
 
-void EndDrawing(void);
+// NOTE: Man, that's a mess, try to didy it up sometime
+// TODO: Fix it with right mind
+void EndDrawing(void) {
+	// Optim:)
+	if(CORE.Terminal.width <= 0 || CORE.Terminal.height <= 0) return;
+	if(CORE.backbuffer == NULL) return;
 
+	size_t max_size = (size_t)CORE.Terminal.width * (size_t)CORE.Terminal.height * 64 + 64;
+	// TODO: Do SUPER FAV ERR HANDLING :):):):):):):):)
+	char* rawbackbuff = malloc(max_size);
+	if(!rawbackbuff) return;
+	size_t curr_pos = 0;
+
+	const char* home = "\033[H";
+	// Could be rawbackbuff but i felt the pasiooooonnnnn TO DO THAT!!!!!!!!!!!!!!!!!!
+	memcpy(rawbackbuff + curr_pos, home, 3);
+	curr_pos += 3;
+
+	char* currentFg = NULL;
+	char* currentBg = NULL;
+	size_t currentFgLen = 0;
+	size_t currentBgLen = 0;
+
+
+	// Normaly I WOULD DO i and j but for the sake of my own sanity i've done THE XY!!!!!!!!!!
+	for(int y = 0; y < CORE.Terminal.height; y++) {
+		for(int x = 0; x < CORE.Terminal.width; x++) {
+			cell* workspace = &CORE.backbuffer[y * CORE.Terminal.width + x];
+	
+			// Super Fg
+			if(workspace->fgSeqLenght != currentFgLen || currentFg == NULL || memcmp(workspace->fgSeq, currentFg, workspace->fgSeqLenght) != 0) {
+			    if(curr_pos + workspace->fgSeqLenght < max_size) {
+			        memcpy(rawbackbuff + curr_pos, workspace->fgSeq, workspace->fgSeqLenght);
+			        curr_pos += workspace->fgSeqLenght;
+
+			        currentFg = workspace->fgSeq;
+			        currentFgLen = workspace->fgSeqLenght;
+			    }
+			}
+
+			// Super BG
+			if(workspace->bgSeqLenght != currentBgLen || currentBg == NULL || memcmp(workspace->bgSeq, currentBg, workspace->bgSeqLenght) != 0) {
+			    if(curr_pos + workspace->bgSeqLenght < max_size) {
+			        memcpy(rawbackbuff + curr_pos, workspace->bgSeq, workspace->bgSeqLenght);
+			        curr_pos += workspace->bgSeqLenght;
+
+			        currentBg = workspace->bgSeq;
+			        currentBgLen = workspace->bgSeqLenght;
+			    }
+			}
+
+			size_t workspace_len = workspace->utfcharlenght ? workspace->utfcharlenght : 1;
+			if(curr_pos + workspace_len >= max_size) continue;
+			memcpy(rawbackbuff + curr_pos, workspace->utf8char, workspace_len);
+			curr_pos += workspace_len;
+		}
+
+		if(curr_pos + 2 < max_size) {
+			rawbackbuff[curr_pos++] = '\r';
+			rawbackbuff[curr_pos++] = '\n';
+		}
+	}
+
+	// WHY: Becouse of leaving the terminal
+	const char* reset = "\033[0m";
+	if(curr_pos + 4 < max_size) {
+		memcpy(rawbackbuff + curr_pos, reset, 4);
+		curr_pos += 4;
+	}
+
+	// TODO: Here make cursor pos things(like setting final cursorpos)(remamber to add the max len of this string to max_size)
+	
+	// WRITY
+	WriteSysCall(STDOUT_FILENO, rawbackbuff, curr_pos);
+
+	free(rawbackbuff);
+
+
+
+	// LITRAL CTRL+C + CTRL+V FROM BEFORE REWRITE
+	CORE.Time.previous = CORE.Time.current;
+    CORE.Time.current = GetTime();
+
+	CORE.Time.delta = CORE.Time.current - CORE.Time.previous;
+
+	if(CORE.Time.delta < CORE.Time.target) {
+		double sleepTime = (CORE.Time.target - CORE.Time.delta);
+
+		#if defined(__APPLE__) || defined(__linux__)
+		
+			// TODO: Check if it's better with nanosleep(Do reasearch)
+			usleep((useconds_t)(sleepTime * 1000000.0));
+
+		#elif defined(_WIN32) || defined(_WIN64)
+		
+			Sleep((DWORD)(sleepTime * 1000.0));
+
+		#endif
+
+		CORE.Time.current = GetTime();
+        CORE.Time.delta = CORE.Time.current - CORE.Time.previous;
+	}
+
+	CORE.Time.frameCounter++;
+}
 
 
 
@@ -419,7 +522,7 @@ void ClearTuiCharRaw(char character[4], color Color, size_t lenght) {
 	CORE.Tui.previousBgColor = CORE.Tui.bgColor;
 	CORE.Tui.bgColor = Color;
 
-	for(size_t i = 0; i < CORE.Terminal.width * CORE.Terminal.height; i++) {
+	for(int i = 0; i < CORE.Terminal.width * CORE.Terminal.height; i++) {
 		cell* ptrrer = &CORE.backbuffer[i];
 
 		memcpy(ptrrer->utf8char, character, sizeof(char) * 4);

@@ -42,18 +42,34 @@ void GetSizesTest() {
 	CloseTui();
 }
 
-// NOTE: Only for linux/mac cuz fuck  microsoft
+void ClearBgTest() {
+	InitTui(60, false, false);
+
+	while(!TuiShouldClose()) {
+		BeginDrawing();
+
+		ClearTui((color){0, 0, 0});
+
+		EndDrawing();
+	}
+
+	CloseTui();
+}
+
+// NOTE: Only for linux/mac cuz fuck microsoft
 int main(void) {
 	int Input = 0;
 
 	printf("1. InitTui test\n");
 	printf("2. GetSizes test\n");
+	printf("3. ClearBg test\n");
 
 	printf("Input: ");
 	scanf("%d", &Input);
 
 	if(Input == 1) { InitTest(); }
 	else if(Input == 2) { GetSizesTest(); }
+	else if(Input == 3) { ClearBgTest(); }
 	
 	return 0;
 }

@@ -1,5 +1,4 @@
 #include "../include/esclib.h"
-#include "PrivateErrorProtocols.h"
 
 #include <string.h>
 
