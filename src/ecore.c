@@ -323,7 +323,7 @@ void EndDrawing(void) {
 	if(!rawbackbuff) return;
 	size_t curr_pos = 0;
 
-	const char* homeclear = "\033[2J\033[H";
+	const char* homeclear = "\033[H\033[2J";
 	// Could be rawbackbuff but i felt the pasiooooonnnnn TO DO THAT!!!!!!!!!!!!!!!!!!
 	memcpy(rawbackbuff + curr_pos, homeclear, 7);
 	curr_pos += 7;
@@ -390,9 +390,7 @@ void EndDrawing(void) {
     u_int32_t cy = CORE.Cursor.currentTerminalPosition.y;
 
 	char cursorSeq[32];
-	int n = snprintf(cursorSeq, sizeof(cursorSeq), "\033[%u;%uH",
-                 cy == 0 ? 1 : cy,
-                 cx == 0 ? 1 : cx);
+	int n = snprintf(cursorSeq, sizeof(cursorSeq), "\033[%u;%uH", cy, cx);
 
 	if(n > 0 && curr_pos + (size_t)n + 6 < max_size) {
 	    memcpy(rawbackbuff + curr_pos, cursorSeq, n);
