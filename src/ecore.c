@@ -1,4 +1,5 @@
 #include "../include/esclib.h"
+#include "sys/types.h"
 
 #include <signal.h>
 #include <stddef.h>
@@ -522,14 +523,73 @@ void ClearTuiCharRaw(char character[4], color Color, size_t lenght) {
 	CORE.Tui.previousBgColor = CORE.Tui.bgColor;
 	CORE.Tui.bgColor = Color;
 
+	char seq[20];
+    int p = 0;
+	u_int8_t bf;
+
+    seq[p++] = '\033';
+    seq[p++] = '[';
+    seq[p++] = '4';
+    seq[p++] = '8';
+    seq[p++] = ';';
+    seq[p++] = '2';
+    seq[p++] = ';';
+
+    bf = Color.red;
+    if(bf >= 100) {
+        seq[p++] = '0' + bf / 100;
+        seq[p++] = '0' + (bf / 10) % 10;
+        seq[p++] = '0' + bf % 10;
+    } else if(bf >= 10) {
+        seq[p++] = '0' + bf / 10;
+        seq[p++] = '0' + bf % 10;
+    } else {
+        seq[p++] = '0' + bf;
+    }
+
+    seq[p++] = ';';
+
+    bf = Color.green;
+    if(bf >= 100) {
+        seq[p++] = '0' + bf / 100;
+        seq[p++] = '0' + (bf / 10) % 10;
+        seq[p++] = '0' + bf % 10;
+    } else if(bf >= 10) {
+        seq[p++] = '0' + bf / 10;
+        seq[p++] = '0' + bf % 10;
+    } else {
+        seq[p++] = '0' + bf;
+    }
+
+    seq[p++] = ';';
+
+    bf = Color.blue;
+    if(bf >= 100) {
+        seq[p++] = '0' + bf / 100;
+        seq[p++] = '0' + (bf / 10) % 10;
+        seq[p++] = '0' + bf % 10;
+    } else if(bf >= 10) {
+        seq[p++] = '0' + bf / 10;
+        seq[p++] = '0' + bf % 10;
+    } else {
+        seq[p++] = '0' + bf;
+    }
+
+    seq[p++] = 'm';
+
+
+
 	for(int i = 0; i < CORE.Terminal.width * CORE.Terminal.height; i++) {
 		cell* ptrrer = &CORE.backbuffer[i];
 
 		memcpy(ptrrer->utf8char, character, sizeof(char) * 4);
 		ptrrer->utfcharlenght = (u_int8_t)lenght;
+ 
+		memcpy(ptrrer->bgSeq, seq, p);
+		ptrrer->bgSeqLenght = p;
 
-		ptrrer->fgSeqLenght = 0;
-		ptrrer->bgSeqLenght = 0;
+		memcpy(ptrrer->fgSeq, "\033[38;2;255;255;255m", 19);
+		ptrrer->fgSeqLenght = 19;
 	}
 }
 void ClearTuiChar(char character[4], color Color) {
