@@ -12,7 +12,7 @@ TODO:
 - Make termcurpos uint
 - Check if U_INT IS PLATFORM DEPENDENT!!!!!!
 - Just fucking fix ENDDRAWING!!!!!!!!!!!!!!
-- I'm just going to do raylib for ncurses or sum like that if I can't fix it
+- It's possible. Even ncurses cn't do 60fps i think. But diffing should do the job
 
 
 TOUGHTS SAVE(In case cursor starts to flicker again(YES I FUCKING FIXED IT!!!!)):
