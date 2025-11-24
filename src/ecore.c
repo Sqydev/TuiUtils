@@ -389,42 +389,18 @@ void EndDrawing(void) {
     u_int32_t cx = CORE.Cursor.currentTerminalPosition.x;
     u_int32_t cy = CORE.Cursor.currentTerminalPosition.y;
 
-	if(curr_pos + 32 < max_size) {
-        char* out = rawbackbuff + curr_pos;
-        size_t pos = 0;
-        char tmp[16];
-        size_t i;
+	char cursorSeq[32];
+	int n = snprintf(cursorSeq, sizeof(cursorSeq), "\033[%u;%uH",
+                 cy == 0 ? 1 : cy,
+                 cx == 0 ? 1 : cx);
 
-        out[pos++] = '\033';
-        out[pos++] = '[';
+	if(n > 0 && curr_pos + (size_t)n + 6 < max_size) {
+	    memcpy(rawbackbuff + curr_pos, cursorSeq, n);
+	    curr_pos += n;
 
-        u_int32_t t = cy;
-        i = 0;
-        while (t > 0) {
-            tmp[i++] = '0' + (t % 10);
-            t /= 10;
-        }
-        while (i--) out[pos++] = tmp[i];
-        
-
-        out[pos++] = ';';
-
-        t = cx;
-        i = 0;
-        while (t > 0) {
-            tmp[i++] = '0' + (t % 10);
-            t /= 10;
-        }
-        while (i--) out[pos++] = tmp[i];
-
-        out[pos++] = 'H';
-
-        curr_pos += pos;
-
-		// TODO: Make it so when there is hide cursor it just doesn't do that
-		memcpy(out + curr_pos, "\033[?25h", 6);
-		curr_pos += 6;
-    }
+	    memcpy(rawbackbuff + curr_pos, "\033[?25h", 6);
+	    curr_pos += 6;
+	}
 	
 	// WRITY
 	WriteSysCall(STDOUT_FILENO, rawbackbuff, curr_pos);
