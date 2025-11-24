@@ -317,15 +317,15 @@ void EndDrawing(void) {
 	if(CORE.Terminal.width <= 0 || CORE.Terminal.height <= 0) return;
 	if(CORE.backbuffer == NULL) return;
 
-	size_t max_size = (size_t)CORE.Terminal.width * (size_t)CORE.Terminal.height * 64 + 64;
+	size_t max_size = (size_t)CORE.Terminal.width * (size_t)CORE.Terminal.height * 64 + 64 + 4;
 	// TODO: Do SUPER FAV ERR HANDLING :):):):):):):):)
 	char* rawbackbuff = malloc(max_size);
 	if(!rawbackbuff) return;
 	size_t curr_pos = 0;
 
-	const char* home = "\033[H";
+	const char* homeclear = "\033[2J\033[H";
 	// Could be rawbackbuff but i felt the pasiooooonnnnn TO DO THAT!!!!!!!!!!!!!!!!!!
-	memcpy(rawbackbuff + curr_pos, home, 3);
+	memcpy(rawbackbuff + curr_pos, homeclear, 7);
 	curr_pos += 3;
 
 	char* currentFg = NULL;
