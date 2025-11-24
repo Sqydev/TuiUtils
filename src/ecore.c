@@ -311,13 +311,13 @@ void BeginDrawing(void) {
 }
 
 // NOTE: Man, that's a mess, try to didy it up sometime
-// TODO: Fix it with right mind
+// TODO: Fix it with mind
 void EndDrawing(void) {
 	// Optim:)
 	if(CORE.Terminal.width <= 0 || CORE.Terminal.height <= 0) return;
 	if(CORE.backbuffer == NULL) return;
 
-	size_t max_size = (size_t)CORE.Terminal.width * (size_t)CORE.Terminal.height * 64 + 64 + 4;
+	size_t max_size = (size_t)CORE.Terminal.width * (size_t)CORE.Terminal.height * 64 + 64 + 4 + 29 + 12;
 	// TODO: Do SUPER FAV ERR HANDLING :):):):):):):):)
 	char* rawbackbuff = malloc(max_size);
 	if(!rawbackbuff) return;
@@ -326,7 +326,11 @@ void EndDrawing(void) {
 	const char* homeclear = "\033[2J\033[H";
 	// Could be rawbackbuff but i felt the pasiooooonnnnn TO DO THAT!!!!!!!!!!!!!!!!!!
 	memcpy(rawbackbuff + curr_pos, homeclear, 7);
-	curr_pos += 3;
+	curr_pos += 7;
+
+	// I fucking cant
+	memcpy(rawbackbuff + curr_pos, "\033[?25l", 6);
+	curr_pos += 6;
 
 	char* currentFg = NULL;
 	char* currentBg = NULL;
@@ -380,7 +384,47 @@ void EndDrawing(void) {
 		curr_pos += 4;
 	}
 
-	// TODO: Here make cursor pos things(like setting final cursorpos)(remamber to add the max len of this string to max_size)
+	// It's chatgbt cuz I could do it but I'm lazy and it sould work
+	// TODO: Check if it's slop or not
+    u_int32_t cx = CORE.Cursor.currentTerminalPosition.x;
+    u_int32_t cy = CORE.Cursor.currentTerminalPosition.y;
+
+	if(curr_pos + 32 < max_size) {
+        char* out = rawbackbuff + curr_pos;
+        size_t pos = 0;
+        char tmp[16];
+        size_t i;
+
+        out[pos++] = '\033';
+        out[pos++] = '[';
+
+        u_int32_t t = cy;
+        i = 0;
+        while (t > 0) {
+            tmp[i++] = '0' + (t % 10);
+            t /= 10;
+        }
+        while (i--) out[pos++] = tmp[i];
+        
+
+        out[pos++] = ';';
+
+        t = cx;
+        i = 0;
+        while (t > 0) {
+            tmp[i++] = '0' + (t % 10);
+            t /= 10;
+        }
+        while (i--) out[pos++] = tmp[i];
+
+        out[pos++] = 'H';
+
+        curr_pos += pos;
+
+		// TODO: Make it so when there is hide cursor it just doesn't do that
+		memcpy(out + curr_pos, "\033[?25h", 6);
+		curr_pos += 6;
+    }
 	
 	// WRITY
 	WriteSysCall(STDOUT_FILENO, rawbackbuff, curr_pos);
