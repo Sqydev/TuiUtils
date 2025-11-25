@@ -328,10 +328,6 @@ void EndDrawing(void) {
 	memcpy(rawbackbuff + curr_pos, homeclear, 7);
 	curr_pos += 7;
 
-	// I fucking cant
-	memcpy(rawbackbuff + curr_pos, "\033[?25l", 6);
-	curr_pos += 6;
-
 	char* currentFg = NULL;
 	char* currentBg = NULL;
 	size_t currentFgLen = 0;
@@ -395,9 +391,6 @@ void EndDrawing(void) {
 	if(n > 0 && curr_pos + (size_t)n + 6 < max_size) {
 	    memcpy(rawbackbuff + curr_pos, cursorSeq, n);
 	    curr_pos += n;
-
-	    memcpy(rawbackbuff + curr_pos, "\033[?25h", 6);
-	    curr_pos += 6;
 	}
 	
 	// WRITY
