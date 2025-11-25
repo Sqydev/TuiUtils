@@ -11,8 +11,7 @@ TODO:
 - Make sure thet signal handling clears the other jobs
 - Make termcurpos uint
 - Check if U_INT IS PLATFORM DEPENDENT!!!!!!
-- Just fucking fix ENDDRAWING!!!!!!!!!!!!!!
-- It's possible. Even ncurses cn't do 60fps i think. But diffing should do the job
+- Rewrite EndDrawing from chatgbt
 
 
 TOUGHTS SAVE(In case cursor starts to flicker again(YES I FUCKING FIXED IT!!!!)):
