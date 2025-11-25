@@ -43,6 +43,7 @@ typedef struct cell {
 
 typedef struct CoreData {
 	cell* backbuffer;
+	cell* frontbuffer;
 
 	struct {
 		bool shouldClose;
@@ -274,6 +275,7 @@ void InitTui(int fps, bool ShouldHideCursor, bool DisableStandardSignals) {
 
 	// INIT BACKBUFFOR
 	CORE.backbuffer = calloc(CORE.Terminal.width * CORE.Terminal.height, sizeof(cell));
+	CORE.frontbuffer = calloc(CORE.Terminal.width * CORE.Terminal.height, sizeof(cell));
 	// TODO: Make alloc error handling here!!!
 }
 
@@ -305,128 +307,123 @@ void BeginDrawing(void) {
 
 		// TODO: Do alloc error handling here too(and make it create new one and then make =(to don't lose data when smf is wrg)):
 		CORE.backbuffer = realloc(CORE.backbuffer, CORE.Terminal.width * CORE.Terminal.height * sizeof(cell));
+		CORE.frontbuffer = realloc(CORE.frontbuffer, CORE.Terminal.width * CORE.Terminal.height * sizeof(cell));
 
 		CORE.Terminal.resized = false;
 	}
 }
 
 // NOTE: Man, that's a mess, try to didy it up sometime
-// TODO: Fix it with mind
+// TODO:
+// NOTE: I've just done chatgbt, make my own version
 void EndDrawing(void) {
-	// Optim:)
-	if(CORE.Terminal.width <= 0 || CORE.Terminal.height <= 0) return;
-	if(CORE.backbuffer == NULL) return;
+	int width = CORE.Terminal.width;
+	int height = CORE.Terminal.height;
+	if(width <= 0 || height <= 0) return;
 
-	size_t max_size = (size_t)CORE.Terminal.width * (size_t)CORE.Terminal.height * 64 + 64 + 4 + 29 + 12;
-	// TODO: Do SUPER FAV ERR HANDLING :):):):):):):):)
-	char* rawbackbuff = malloc(max_size);
-	if(!rawbackbuff) return;
-	size_t curr_pos = 0;
-
-	const char* homeclear = "\033[H\033[2J";
-	// Could be rawbackbuff but i felt the pasiooooonnnnn TO DO THAT!!!!!!!!!!!!!!!!!!
-	memcpy(rawbackbuff + curr_pos, homeclear, 7);
-	curr_pos += 7;
-
-	char* currentFg = NULL;
-	char* currentBg = NULL;
-	size_t currentFgLen = 0;
-	size_t currentBgLen = 0;
-
-
-	// Normaly I WOULD DO i and j but for the sake of my own sanity i've done THE XY!!!!!!!!!!
-	for(int y = 0; y < CORE.Terminal.height; y++) {
-		for(int x = 0; x < CORE.Terminal.width; x++) {
-			cell* workspace = &CORE.backbuffer[y * CORE.Terminal.width + x];
-	
-			// Super Fg
-			if(workspace->fgSeqLenght != currentFgLen || currentFg == NULL || memcmp(workspace->fgSeq, currentFg, workspace->fgSeqLenght) != 0) {
-			    if(curr_pos + workspace->fgSeqLenght < max_size) {
-			        memcpy(rawbackbuff + curr_pos, workspace->fgSeq, workspace->fgSeqLenght);
-			        curr_pos += workspace->fgSeqLenght;
-
-			        currentFg = workspace->fgSeq;
-			        currentFgLen = workspace->fgSeqLenght;
-			    }
-			}
-
-			// Super BG
-			if(workspace->bgSeqLenght != currentBgLen || currentBg == NULL || memcmp(workspace->bgSeq, currentBg, workspace->bgSeqLenght) != 0) {
-			    if(curr_pos + workspace->bgSeqLenght < max_size) {
-			        memcpy(rawbackbuff + curr_pos, workspace->bgSeq, workspace->bgSeqLenght);
-			        curr_pos += workspace->bgSeqLenght;
-
-			        currentBg = workspace->bgSeq;
-			        currentBgLen = workspace->bgSeqLenght;
-			    }
-			}
-
-			size_t workspace_len = workspace->utfcharlenght ? workspace->utfcharlenght : 1;
-			if(curr_pos + workspace_len >= max_size) continue;
-			memcpy(rawbackbuff + curr_pos, workspace->utf8char, workspace_len);
-			curr_pos += workspace_len;
-		}
-
-		if(curr_pos + 2 < max_size) {
-			rawbackbuff[curr_pos++] = '\r';
-			rawbackbuff[curr_pos++] = '\n';
-		}
-	}
-
-	// WHY: Becouse of leaving the terminal
-	const char* reset = "\033[0m";
-	if(curr_pos + 4 < max_size) {
-		memcpy(rawbackbuff + curr_pos, reset, 4);
-		curr_pos += 4;
-	}
-
-	// It's chatgbt cuz I could do it but I'm lazy and it sould work
-	// TODO: Check if it's slop or not
-    u_int32_t cx = CORE.Cursor.currentTerminalPosition.x;
-    u_int32_t cy = CORE.Cursor.currentTerminalPosition.y;
-
+	// Bufor pomocniczy na sekwencje kursora
 	char cursorSeq[32];
-	int n = snprintf(cursorSeq, sizeof(cursorSeq), "\033[%u;%uH", cy, cx);
 
-	if(n > 0 && curr_pos + (size_t)n + 6 < max_size) {
-	    memcpy(rawbackbuff + curr_pos, cursorSeq, n);
-	    curr_pos += n;
+	// Przechowuj index ostatnio rysowanego wiersza/kolumny (opcjonalnie)
+	// Bierzemy prostą strategię: dla każdej zmiany ustawiamy kursor i wypisujemy bg+fg+char.
+	for(int y = 0; y < height; y++) {
+		for(int x = 0; x < width; x++) {
+			int idx = y * width + x;
+			cell *back = &CORE.backbuffer[idx];
+			cell *front = &CORE.frontbuffer[idx];
+
+			// Porównanie: jeżeli którekolwiek pole się różni, musimy przepisać
+			bool different = false;
+
+			// Porównaj długości i zawartość utf8char
+			if(back->utfcharlenght != front->utfcharlenght ||
+			   memcmp(back->utf8char, front->utf8char, back->utfcharlenght) != 0) {
+				different = true;
+			}
+			// Porównaj fg seq
+			if(!different) {
+				if(back->fgSeqLenght != front->fgSeqLenght ||
+				   memcmp(back->fgSeq, front->fgSeq, back->fgSeqLenght) != 0) {
+					different = true;
+				}
+			}
+			// Porównaj bg seq
+			if(!different) {
+				if(back->bgSeqLenght != front->bgSeqLenght ||
+				   memcmp(back->bgSeq, front->bgSeq, back->bgSeqLenght) != 0) {
+					different = true;
+				}
+			}
+
+			if(different) {
+				// Ustaw kursor na (y+1, x+1)
+				// sekwencja: \033[<row>;<col>H
+				int n = snprintf(cursorSeq, sizeof(cursorSeq), "\033[%d;%dH", y + 1, x + 1);
+				if(n > 0) {
+					WriteSysCall(STDOUT_FILENO, cursorSeq, (size_t)n);
+				}
+
+				// Zapisz kolejno bgSeq, fgSeq, znak
+				if(back->bgSeqLenght > 0) {
+					WriteSysCall(STDOUT_FILENO, back->bgSeq, back->bgSeqLenght);
+				}
+				if(back->fgSeqLenght > 0) {
+					WriteSysCall(STDOUT_FILENO, back->fgSeq, back->fgSeqLenght);
+				}
+				if(back->utfcharlenght > 0) {
+					WriteSysCall(STDOUT_FILENO, back->utf8char, back->utfcharlenght);
+				}
+
+				// Zaktualizuj frontbuffer (kopiujemy cały cell)
+				*front = *back;
+			}
+		}
 	}
-	
-	// WRITY
-	WriteSysCall(STDOUT_FILENO, rawbackbuff, curr_pos);
 
-	free(rawbackbuff);
+	// Opcjonalnie: przesunięcie kursora do pozycji kursora biblioteki (CORE.Cursor.currentTerminalPosition)
+	// ustawiamy pozycję kursora na bieżącą pozycję (może przydać się dla wejścia)
+	{
+		int row = CORE.Cursor.currentTerminalPosition.y;
+		int col = CORE.Cursor.currentTerminalPosition.x;
+		if(row < 1) row = 1;
+		if(col < 1) col = 1;
+		int n = snprintf(cursorSeq, sizeof(cursorSeq), "\033[%d;%dH", row, col);
+		if(n > 0) WriteSysCall(STDOUT_FILENO, cursorSeq, (size_t)n);
+	}
 
-
-
-	// LITRAL CTRL+C + CTRL+V FROM BEFORE REWRITE
+	// Aktualizuj czas i delta
+	double now = GetTime();
 	CORE.Time.previous = CORE.Time.current;
-    CORE.Time.current = GetTime();
-
+	CORE.Time.current = now;
 	CORE.Time.delta = CORE.Time.current - CORE.Time.previous;
+	CORE.Time.frameCounter++;
 
-	if(CORE.Time.delta < CORE.Time.target) {
-		double sleepTime = (CORE.Time.target - CORE.Time.delta);
-
+	// Ograniczanie FPS (jeśli target > 0)
+	if(CORE.Time.target > 0.0) {
+		double frame_time = CORE.Time.delta;
+		double need = CORE.Time.target - frame_time;
+		if(need > 0.0) {
+			// Konwertuj na msec/microsec
 		#if defined(__APPLE__) || defined(__linux__)
-		
-			// TODO: Check if it's better with nanosleep(Do reasearch)
-			usleep((useconds_t)(sleepTime * 1000000.0));
-
+			struct timespec ts;
+			ts.tv_sec = (time_t)need;
+			ts.tv_nsec = (long)((need - (time_t)need) * 1e9);
+			// nanosleep może być przerwany sygnałem; ignorujemy resztkowy czas
+			nanosleep(&ts, NULL);
 		#elif defined(_WIN32) || defined(_WIN64)
-		
-			Sleep((DWORD)(sleepTime * 1000.0));
-
+			// Sleep w ms
+			DWORD ms = (DWORD)(need * 1000.0 + 0.5);
+			if(ms > 0) Sleep(ms);
 		#endif
 
-		CORE.Time.current = GetTime();
-        CORE.Time.delta = CORE.Time.current - CORE.Time.previous;
+			// Po spaniu zaktualizuj czasy ponownie
+			now = GetTime();
+			CORE.Time.previous = CORE.Time.current;
+			CORE.Time.current = now;
+			CORE.Time.delta = CORE.Time.current - CORE.Time.previous;
+		}
 	}
-
-	CORE.Time.frameCounter++;
 }
-
 
 
 bool TuiShouldClose(void) {
