@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 // NOTE: Order: Structs, macros, itp THEN functions
 
@@ -63,7 +64,6 @@ void EndDrawing(void);
 
 bool TuiShouldClose(void);
 bool IsAltBuffOn(void);
-bool IsRawModeOn(void);
 
 int GetTuiWidth(void);
 int GetTuiHeight(void);
@@ -87,7 +87,7 @@ void ClearTuiChar(char character[4], color Color);
 void ClearTui(color Color);
 
 // Super extra fns
-void WriteToBackBuffor(const char* to_add, size_t lenght);
+void WriteToBackBuffor(const char* to_add, intvector2 pos, color BgColor, color FgColor, uint8_t lenght);
 
 // Pretty useless fns for normal use
 void EnableBufferMode(void);

@@ -2,11 +2,13 @@
 #include "sys/types.h"
 
 #include <signal.h>
+
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 
 
@@ -32,13 +34,13 @@
 
 typedef struct cell {
 	char utf8char[4];
-	u_int8_t utfcharlenght;
+	uint8_t utfcharlenght;
 
 	char fgSeq[20];
-	u_int8_t fgSeqLenght;
+	uint8_t fgSeqLenght;
 
 	char bgSeq[20];
-	u_int8_t bgSeqLenght;
+	uint8_t bgSeqLenght;
 } cell;
 
 typedef struct CoreData {
@@ -434,10 +436,6 @@ bool IsAltBuffOn(void) {
 	return CORE.Terminal.altBuffOn;
 }
 
-bool IsRawModeOn(void) {
-	return CORE.Terminal.rawModeOn;
-}
-
 
 
 
@@ -449,9 +447,13 @@ int GetTuiHeight(void) {
 	return CORE.Terminal.height;
 }
 
-vector2 GetCursorPosition(void);
+vector2 GetCursorPosition(void) {
+	return CORE.Cursor.currentPosition;
+}
 
-vector2 GetLockedCursorPosition(void);
+vector2 GetLockedCursorPosition(void) {
+	return CORE.Cursor.lockedPosition;
+}
 
 int GetKey(void);
 
@@ -484,6 +486,9 @@ double GetTime(void) {
 
 
 void SetCursorPosition(float x, float y) {
+	if(x < 0) { WriteSysCall(STDERR_FILENO, "ESClib.SetCursorPosition: X is less than zero, clamping to zero", 63); x = 0; }
+	if(y < 0) { WriteSysCall(STDERR_FILENO, "ESClib.SetCursorPosition: Y is less than zero, clamping to zero", 63); y = 0; }
+
 	if(!CORE.Cursor.locked) {
 		CORE.Cursor.currentPosition = (vector2){x, y};
 		CORE.Cursor.currentTerminalPosition = (intvector2){x + 1, y + 1};
@@ -533,7 +538,7 @@ void ClearTuiCharRaw(char character[4], color Color, size_t lenght) {
 
 	char seq[20];
     int p = 0;
-	u_int8_t bf;
+	uint8_t bf;
 
     seq[p++] = '\033';
     seq[p++] = '[';
@@ -591,7 +596,7 @@ void ClearTuiCharRaw(char character[4], color Color, size_t lenght) {
 		cell* ptrrer = &CORE.backbuffer[i];
 
 		memcpy(ptrrer->utf8char, character, sizeof(char) * 4);
-		ptrrer->utfcharlenght = (u_int8_t)lenght;
+		ptrrer->utfcharlenght = (uint8_t)lenght;
  
 		memcpy(ptrrer->bgSeq, seq, p);
 		ptrrer->bgSeqLenght = p;
@@ -612,7 +617,11 @@ void ClearTui(color Color) {
 
 
 
-void WriteToBackBuffor(const char* to_add, size_t lenght);
+void WriteToBackBuffor(cell*, intvector2 pos) {
+	for(int i = 0; i < lenght; i++) {	
+		CORE.backbuffer->utf8char[pos.x * pos.y + i] = to_add[i];
+	}
+}
 
 
 

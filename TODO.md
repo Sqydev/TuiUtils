@@ -13,7 +13,6 @@ TODO:
 - Check if U_INT IS PLATFORM DEPENDENT!!!!!!
 - Rewrite EndDrawing from chatgbt
 - Make thing like loading screen fn.
-- Make gpu rendering that is active ONLY when gpu is detected(or if it has to be and terminal that supports gpus then add note for devs to add note for users that it's reccomendet to use terminals with gpu protocvols)
 
 
 TOUGHTS SAVE(In case cursor starts to flicker again(YES I FUCKING FIXED IT!!!!)):
