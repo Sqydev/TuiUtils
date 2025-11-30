@@ -86,6 +86,20 @@ void EndDrawingStressTest() {
 	}
 }
 
+void Utf8BgTest() {
+	InitTui(60, false, false);
+
+	while(!TuiShouldClose()) {
+		BeginDrawing();
+
+		ClearTuiCharRaw("█", (color){255, 255, 255}, 4);
+
+		EndDrawing();
+	}
+
+	CloseTui();
+}
+
 // NOTE: Only for linux/mac cuz fuck microsoft
 int main(void) {
 	int Input = 0;
@@ -94,6 +108,7 @@ int main(void) {
 	printf("2. GetSizes test\n");
 	printf("3. ClearBg test\n");
 	printf("4. EndDrawingStresstest\n");
+	printf("5. Utf8 bg test\n");
 
 	printf("Input: ");
 	scanf("%d", &Input);
@@ -102,6 +117,7 @@ int main(void) {
 	else if(Input == 2) { GetSizesTest(); }
 	else if(Input == 3) { ClearBgTest(); }
 	else if(Input == 4) { EndDrawingStressTest(); }
+	else if(Input == 5) { Utf8BgTest(); }
 	
 	return 0;
 }

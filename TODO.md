@@ -13,6 +13,7 @@ TODO:
 - Check if U_INT IS PLATFORM DEPENDENT!!!!!!
 - Rewrite EndDrawing from chatgbt
 - Make thing like loading screen fn.
+- Check if getting lenght in ClearTuiChar(not raw) works
 
 
 TOUGHTS SAVE(In case cursor starts to flicker again(YES I FUCKING FIXED IT!!!!)):

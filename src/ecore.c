@@ -532,7 +532,7 @@ void UnlockCursor(void) {
 
 
 
-void ClearTuiCharRaw(char character[4], color Color, size_t lenght) {
+void ClearTuiCharRaw(char character[4], color Color, size_t utf8_lenght) {
 	CORE.Tui.previousBgColor = CORE.Tui.bgColor;
 	CORE.Tui.bgColor = Color;
 
@@ -596,7 +596,7 @@ void ClearTuiCharRaw(char character[4], color Color, size_t lenght) {
 		cell* ptrrer = &CORE.backbuffer[i];
 
 		memcpy(ptrrer->utf8char, character, sizeof(char) * 4);
-		ptrrer->utfcharlenght = (uint8_t)lenght;
+		ptrrer->utfcharlenght = (uint8_t)utf8_lenght;
  
 		memcpy(ptrrer->bgSeq, seq, p);
 		ptrrer->bgSeqLenght = p;
@@ -617,11 +617,11 @@ void ClearTui(color Color) {
 
 
 
-void WriteToBackBuffor(cell*, intvector2 pos) {
-	for(int i = 0; i < lenght; i++) {	
-		CORE.backbuffer->utf8char[pos.x * pos.y + i] = to_add[i];
-	}
-}
+//void WriteToBackBuffor(cell*, intvector2 pos) {
+//	for(int i = 0; i < lenght; i++) {	
+//		CORE.backbuffer->utf8char[pos.x * pos.y + i] = to_add[i];
+//	}
+//}
 
 
 

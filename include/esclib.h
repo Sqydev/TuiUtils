@@ -82,7 +82,7 @@ void ShowCursor(void);
 void LockCursor(void);
 void UnlockCursor(void);
 
-void ClearTuiCharRaw(char character[4], color Color, size_t lenght);
+void ClearTuiCharRaw(char character[4], color Color, size_t utf8_lenght);
 void ClearTuiChar(char character[4], color Color);
 void ClearTui(color Color);
 
