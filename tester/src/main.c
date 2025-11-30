@@ -92,7 +92,22 @@ void Utf8BgTest() {
 	while(!TuiShouldClose()) {
 		BeginDrawing();
 
-		ClearTuiCharRaw("█", (color){255, 255, 255}, 4);
+		ClearTuiCharRaw("Ę", (color){0, 0, 0}, 2);
+
+		EndDrawing();
+	}
+
+	CloseTui();
+}
+
+// If size is too small then there will be garbage
+void Utf8bglenTest() {
+	InitTui(60, false, false);
+
+	while(!TuiShouldClose()) {
+		BeginDrawing();
+
+		ClearTuiChar("😀", (color){0, 0, 0});
 
 		EndDrawing();
 	}
@@ -109,6 +124,7 @@ int main(void) {
 	printf("3. ClearBg test\n");
 	printf("4. EndDrawingStresstest\n");
 	printf("5. Utf8 bg test\n");
+	printf("6. Utf8 bglen test\n");
 
 	printf("Input: ");
 	scanf("%d", &Input);
@@ -118,6 +134,7 @@ int main(void) {
 	else if(Input == 3) { ClearBgTest(); }
 	else if(Input == 4) { EndDrawingStressTest(); }
 	else if(Input == 5) { Utf8BgTest(); }
+	else if(Input == 6) { Utf8bglenTest(); }
 	
 	return 0;
 }

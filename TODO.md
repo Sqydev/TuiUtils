@@ -13,7 +13,7 @@ TODO:
 - Check if U_INT IS PLATFORM DEPENDENT!!!!!!
 - Rewrite EndDrawing from chatgbt
 - Make thing like loading screen fn.
-- Check if getting lenght in ClearTuiChar(not raw) works
+- Fix the problem that in the test 6 it prints only one 😀(It's becouse 😀 takes place of 2 chars so it breaks or smf)
 
 
 TOUGHTS SAVE(In case cursor starts to flicker again(YES I FUCKING FIXED IT!!!!)):

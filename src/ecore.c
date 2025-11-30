@@ -532,7 +532,7 @@ void UnlockCursor(void) {
 
 
 
-void ClearTuiCharRaw(char character[4], color Color, size_t utf8_lenght) {
+void ClearTuiCharRaw(const char* character, color Color, size_t utf8_lenght) {
 	CORE.Tui.previousBgColor = CORE.Tui.bgColor;
 	CORE.Tui.bgColor = Color;
 
@@ -605,7 +605,7 @@ void ClearTuiCharRaw(char character[4], color Color, size_t utf8_lenght) {
 		ptrrer->fgSeqLenght = 19;
 	}
 }
-void ClearTuiChar(char character[4], color Color) {
+void ClearTuiChar(const char* character, color Color) {
 	size_t len = strnlen(character, 4);
 	ClearTuiCharRaw(character, Color, len);
 }
